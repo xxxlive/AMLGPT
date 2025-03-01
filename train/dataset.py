@@ -3,7 +3,7 @@ from torch.utils.data import Dataset
 from utils import SmilesEnumerator
 import numpy as np
 import re
-
+import math
 
 class SmileDataset(Dataset):
 
@@ -40,7 +40,7 @@ class SmileDataset(Dataset):
         if p < self.aug_prob:
             smiles = self.tfm.randomize_smiles(smiles)
 
-        pattern = "(\[[^\]]+]|<|Br?|Cl?|N|O|S|P|F|I|b|c|n|o|s|p|\(|\)|\.|=|#|-|\+|\\\\|\/|:|~|@|\?|>|\*|\$|\%[0-9]{2}|[0-9])"
+        pattern = "(\[[^\]]+]|<|Br?|Cl?|N|O|S|P|F|I|b|c|n|o|s|p|\(|\)|\|=|#|-|\+|\\\\|\/|:|~|@|\?|>|\*|\$|\%[0-9]{2}|[0-9])"        # .
         regex = re.compile(pattern)
         smiles += str('<') * (self.max_len - len(regex.findall(smiles)))
 
