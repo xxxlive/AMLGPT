@@ -3,6 +3,7 @@ import argparse
 from utils import set_seed
 import numpy as np
 import wandb
+import os
 
 import torch
 import torch.nn as nn
@@ -16,6 +17,7 @@ from dataset import SmileDataset
 import math
 from utils import SmilesEnumerator
 import re
+
 
 if __name__ == '__main__':
 
@@ -34,7 +36,7 @@ if __name__ == '__main__':
                         help="name of the dataset to train on", required=False)
     # parser.add_argument('--property', type=str, default = 'qed', help="which property to use for condition", required=False)
     parser.add_argument('--props', nargs="+", default=['qed'],
-                        help="properties to be used for condition", required=False)
+                        help="properties to be used for condition", required=False)     # qed
     parser.add_argument('--num_props', type=int, default=0, help="number of properties to use for condition",
                         required=False)
     # parser.add_argument('--prop1_unique', type=int, default = 0, help="unique values in that property", required=False)
@@ -60,7 +62,7 @@ if __name__ == '__main__':
                         help="weight for kldiv temperature", required=False)
     parser.add_argument('--adst', type=int, default=0,
                         help="start epoch for adversarial learning", required=False)
-    parser.add_argument('--device', type=str, default='cpu',
+    parser.add_argument('--device', type=str, default='cuda',
                         help="weight for kldiv temperature", required=False)
     parser.add_argument('--lstm_layers', type=int, default=0,
                         help="number of layers in lstm", required=False)
@@ -113,12 +115,21 @@ if __name__ == '__main__':
     lens = [len(regex.findall(i.strip()))
             for i in (list(smiles.values) + list(vsmiles.values))]
     max_len = max(lens)
+    # if 'guacamol' in args.data_name or 'JAK' in args.data_name:
+    #     max_len = 103
+
+    if 'guacamol' in args.data_name or 'JAK' in args.data_name:
+        max_len = 100
+
     print('Max len: ', max_len)
 
     lens = [len(regex.findall(i.strip()))
             for i in (list(scaffold.values) + list(vscaffold.values))]
     scaffold_max_len = max(lens)
     print('Scaffold max len: ', scaffold_max_len)
+
+    if 'JAK' in args.data_name:
+        scaffold_max_len = 100      # align with guacamol
 
     smiles = [i + str('<') * (max_len - len(regex.findall(i.strip())))
               for i in smiles]
@@ -134,6 +145,7 @@ if __name__ == '__main__':
     # whole_string = sorted(list(set(regex.findall(whole_string))))
     # print(whole_string)
 
+    # len = 97
     whole_string = ['#', '%10', '%11', '%12', '(', ')', '-', '1', '2', '3', '4', '5', '6', '7', '8', '9', '<', '=', 'B',
                     'Br', 'C', 'Cl', 'F', 'I', 'N', 'O', 'P', 'S', '[B-]', '[BH-]', '[BH2-]', '[BH3-]', '[B]', '[C+]',
                     '[C-]', '[CH+]', '[CH-]', '[CH2+]', '[CH2]', '[CH]', '[F+]', '[H]', '[I+]', '[IH2]', '[IH]', '[N+]',
@@ -141,12 +153,19 @@ if __name__ == '__main__':
                     '[PH+]', '[PH2+]', '[PH]', '[S+]', '[S-]', '[SH+]', '[SH]', '[Se+]', '[SeH+]', '[SeH]', '[Se]',
                     '[Si-]', '[SiH-]', '[SiH2]', '[SiH]', '[Si]', '[b-]', '[bH-]', '[c+]', '[c-]', '[cH+]', '[cH-]',
                     '[n+]', '[n-]', '[nH+]', '[nH]', '[o+]', '[s+]', '[sH+]', '[se+]', '[se]', 'b', 'c', 'n', 'o', 'p',
-                    's']
+                    's', 'unk']        # , '[K+]', '[Na+]'
+
+    print(f"len(whole_string) = {len(whole_string)}")
+    # assert 1 == 2
 
     train_dataset = SmileDataset(args, smiles, whole_string, max_len, prop=prop, aug_prob=0, scaffold=scaffold,
                                  scaffold_maxlen=scaffold_max_len)
     valid_dataset = SmileDataset(args, vsmiles, whole_string, max_len, prop=vprop, aug_prob=0, scaffold=vscaffold,
                                  scaffold_maxlen=scaffold_max_len)
+
+    print(f"vocab_size = {train_dataset.vocab_size}")
+    print(f"max_len = {train_dataset.max_len}")
+    # assert 1 == 2
 
     mconf = GPTConfig(train_dataset.vocab_size, train_dataset.max_len, num_props=num_props,  # args.num_props,
                       n_layer=args.n_layer, n_head=args.n_head, n_embd=args.n_embd, scaffold=args.scaffold,
@@ -156,6 +175,11 @@ if __name__ == '__main__':
     model2 = Transformer(mconf)
     # model2 = GPT(mconf)
     discriminator = LSTM_Discriminator(mconf)
+
+    ckpt_dir = '../cond_gpt/weights'
+    if not os.path.exists(ckpt_dir):
+        os.makedirs(ckpt_dir)
+
     tconf = TrainerConfig(max_epochs=args.max_epochs, batch_size=args.batch_size, learning_rate=args.learning_rate,
                           lr_decay=True, warmup_tokens=0.1 * len(train_data) * max_len,
                           final_tokens=args.max_epochs * len(train_data) * max_len,
@@ -166,4 +190,5 @@ if __name__ == '__main__':
                       tconf, train_dataset.stoi, train_dataset.itos, discriminator)
     df = trainer.train(wandb)
 
+    print(df.head(3))
     df.to_csv(f'{args.run_name}.csv', index=False)

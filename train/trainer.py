@@ -85,7 +85,10 @@ class Trainer:
 
     def save_checkpoint(self, type='gen'):
         # DataParallel wrappers keep raw model object in .module attribute
-        raw_model = self.model.module if hasattr(self.model, "module") else self.model
+        if type == 'gen':
+            raw_model = self.model.module if hasattr(self.model, "module") else self.model
+        else:       # scaffold
+            raw_model = self.model2.module if hasattr(self.model2, "module") else self.model2
         logger.info("saving %s", self.config.ckpt_path)
         path = self.config.ckpt_path + type + '.pt'
         torch.save(raw_model.state_dict(), path)
@@ -125,6 +128,12 @@ class Trainer:
             pbar = tqdm(enumerate(loader), total=len(loader)) if is_train else enumerate(loader)
             for it, (x, y, p, scaffold) in pbar:
 
+                # print(f"x.shape = {x.shape}, x[0] = {x[0]}")
+                # print(f"y.shape = {y.shape}, y[0] = {y[0]}")
+                # print(f"p = {p}")
+                # print(f"scaffold = {scaffold}")
+
+                # assert 1 == 2
                 # place data on the correct device
                 x = x.to(self.device)
                 y = y.to(self.device)
@@ -232,7 +241,7 @@ class Trainer:
 
         best_loss = float('inf')
         best_loss2 = float('inf')
-        save_model2 = False
+        save_model2 = True
         self.tokens = 0  # counter used for learning rate decay
         molecules = []
 

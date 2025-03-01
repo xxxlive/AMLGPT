@@ -10,6 +10,46 @@ import numpy as np
 import threading
 
 
+from rdkit import Chem
+from rdkit.Chem.Draw import rdMolDraw2D
+from IPython.display import SVG
+from io import BytesIO
+from PIL import Image
+from cairosvg import svg2png
+
+def generate_image(mol, highlight_atoms, highlight_bonds, atomColors, bondColors, radii, size, output, isNumber=False):
+    print("Highlight Atoms:", highlight_atoms)
+    print("Highlight Bonds:", highlight_bonds)
+    print("Atom Colors:", atomColors)
+    print("Bond Colors:", bondColors)
+
+    image_data = BytesIO()
+    view = rdMolDraw2D.MolDraw2DSVG(size[0], size[1])
+    tm = rdMolDraw2D.PrepareMolForDrawing(mol)
+
+    option = view.drawOptions()
+    if isNumber:
+        for atom in mol.GetAtoms():
+            option.atomLabels[atom.GetIdx()] = atom.GetSymbol() + str(atom.GetIdx() + 1)
+
+    view.DrawMolecule(tm,
+                      highlightAtoms=highlight_atoms,
+                      highlightBonds=highlight_bonds,
+                      highlightAtomColors={atom: atomColors for atom in highlight_atoms},
+                      highlightBondColors={bond: bondColors for bond in highlight_bonds},
+                      highlightAtomRadii={atom: radii for atom in highlight_atoms})
+
+    view.FinishDrawing()
+    svg = view.GetDrawingText()
+    SVG(svg.replace('svg:', ''))
+    svg2png(bytestring=svg, write_to=output)
+    img = Image.open(output)
+    img.save(image_data, format='PNG')
+
+    return image_data
+
+
+
 def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)

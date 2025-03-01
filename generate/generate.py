@@ -45,9 +45,9 @@ if __name__ == '__main__':
     parser.add_argument('--gen_size', type=int, default=10000, help="number of times to generate from a batch",
                         required=False)
     parser.add_argument('--vocab_size', type=int, default=26, help="number of layers",
-                        required=False)  # previously 28 .... 26 for moses. 94 for guacamol
+                        required=False)  # previously 28 .... 26 for moses. 94 for guacamol, 96 for tot
     parser.add_argument('--block_size', type=int, default=54, help="number of layers",
-                        required=False)  # previously 57... 54 for moses. 100 for guacamol.
+                        required=False)  # previously 57... 54 for moses. 100 for guacamol.     # max_len
     parser.add_argument('--num_props', type=int, default=0, help="number of properties to use for condition",
                         required=False)
     parser.add_argument('--props', nargs="+", default=[], help="properties to be used for condition", required=False)
@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
     context = "C"
 
-    data = pd.read_csv(args.data_name + '.csv')
+    data = pd.read_csv(f"../train/datasets/{args.data_name}.csv")
     data = data.dropna(axis=0).reset_index(drop=True)
     data.columns = data.columns.str.lower()
 
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     elif ('guacamol' in args.data_name) and args.scaffold:
         scaffold_max_len = 98
     else:
-        scaffold_max_len = 48  # moses 48 guaca 100
+        scaffold_max_len = 100  # align with guaca 100
 
     # content = ' '.join(smiles + scaf)
     # chars = sorted(list(set(regex.findall(content))))
@@ -109,8 +109,10 @@ if __name__ == '__main__':
 
     # with open(f'{args.data_name}_stoi.json', 'w') as f:
     #         json.dump(stoi, f)
-
-    stoi = json.load(open(f'{args.data_name}_stoi.json', 'r'))
+    if args.data_name == 'moses2':
+        stoi = json.load(open(f'{args.data_name}_stoi.json', 'r'))
+    else:
+        stoi = json.load(open('tot_stoi.json', 'r'))
 
     # itos = { i:ch for i,ch in enumerate(chars) }
     itos = {i: ch for ch, i in stoi.items()}
@@ -123,6 +125,7 @@ if __name__ == '__main__':
     # print(condition)
 
     num_props = len(args.props)
+    # guacalmol + jak: vocab_size = 97, block_size = max_len = 103
     mconf = GPTConfig(args.vocab_size, args.block_size, num_props=num_props,
                       n_layer=args.n_layer, n_head=args.n_head, n_embd=args.n_embd, scaffold=args.scaffold,
                       scaffold_maxlen=scaffold_max_len,

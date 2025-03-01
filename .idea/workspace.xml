@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0f42fcbb-0075-4d0d-a2f9-12824b3dc4e0" name="Changes" comment="" />
+    <list default="true" id="0f42fcbb-0075-4d0d-a2f9-12824b3dc4e0" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/generate/moses2_stoi.json" beforeDir="false" afterPath="$PROJECT_DIR$/generate/moses2_stoi.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -13,9 +15,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 6
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
   <component name="ProjectId" id="2thXWJZPgguHErkRtuolj7ycbeV" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -29,8 +31,8 @@
     "WebServerToolWindowPanel.toolwindow.show.date": "false",
     "WebServerToolWindowPanel.toolwindow.show.permissions": "false",
     "WebServerToolWindowPanel.toolwindow.show.size": "false",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "F:/Project-Moles/Generation/OMG-GPT",
+    "git-widget-placeholder": "whb",
+    "last_opened_file_path": "F:/Project-Moles/Generation/AMLGPT",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -56,6 +58,7 @@
       <option name="presentableId" value="Default" />
       <updated>1740805309745</updated>
       <workItem from="1740805310817" duration="6121000" />
+      <workItem from="1740818086302" duration="4000" />
     </task>
     <servers />
   </component>
